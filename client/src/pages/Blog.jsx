@@ -1,31 +1,60 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { assets, blog_data, comments_data } from "../assets/assets";
+import { assets } from "../assets/assets";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Moment from "moment";
 import Loader from "../components/Loader";
+import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const Blog = () => {
   const { id } = useParams();
 
+  const { axios } = useAppContext();
+
   const [data, setData] = useState(null);
   const [comments, setComments] = useState([]);
-
   const [name, setName] = useState("");
-  const [comment, setComment] = useState("");
+  const [content, setContent] = useState("");
 
   const fetchBlogData = async () => {
-    const data = blog_data.find((item) => item._id === id);
-    setData(data);
+    try {
+      const { data } = await axios.get(`api/v1/blog/${id}`);
+      data.success ? setData(data.blog) : toast.error(data.message);
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const fetchComments = async () => {
-    setComments(comments_data);
+    try {
+      const { data } = await axios.post(`/api/v1/blog/comments`, { blogId: id });
+      if (data.success) {
+        setComments(data.comments);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const addComment = async (e) => {
     e.preventDefault();
+
+    try {
+      const { data } = await axios.post(`/api/v1/blog/add-comment`, { blog: id, name, content });
+      if (data.success) {
+        toast.success(data.message);
+        setName("");
+        setContent("");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   useEffect(() => {
@@ -75,7 +104,7 @@ const Blog = () => {
           <form onSubmit={addComment} className="flex flex-col items-start gap-4 max-w-lg">
             <input type="text" placeholder="Name" required className="w-full p-2 border border-gray-300 rounded outline-none" onChange={(e) => setName(e.target.value)} value={name} />
 
-            <textarea placeholder="Comment" className="w-full p-2 border border-gray-300 rounded outline-none h-48 resize-none" required value={comment} onChange={(e) => setComment(e.target.value)}></textarea>
+            <textarea placeholder="Comment" className="w-full p-2 border border-gray-300 rounded outline-none h-48 resize-none" required value={content} onChange={(e) => setContent(e.target.value)}></textarea>
 
             <button type="submit" className="bg-primary text-white rounded p-2 px-8 hover:scale-100 transition-all cursor-pointer">
               Submit
@@ -96,7 +125,9 @@ const Blog = () => {
 
       <Footer />
     </div>
-  ) : <Loader/>
+  ) : (
+    <Loader />
+  );
 };
 
 export default Blog;
