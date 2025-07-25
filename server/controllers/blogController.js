@@ -2,6 +2,7 @@ import fs from "fs";
 import imagekit from "../configs/imagekit.js";
 import Blog from "../models/Blog.model.js";
 import Comment from "../models/comment.model.js";
+import main from "../configs/gemini.js";
 
 // Controller to add a new blog
 export const addBlog = async (req, res) => {
@@ -92,6 +93,7 @@ export const togglePublishBlog = async (req, res) => {
   }
 };
 
+// Controller to add comment
 export const addComment = async (req, res) => {
   try {
     const { blog, name, content } = req.body;
@@ -102,13 +104,23 @@ export const addComment = async (req, res) => {
   }
 };
 
+// Controller to get all blog comments
 export const getBlogComments = async (req, res) => {
   try {
-    const {blogId} = req.body;
+    const { blogId } = req.body;
     const comments = await Comment.find({ blog: blogId, isApproved: true }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, comments });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
-    
   }
-}
+};
+
+export const generateContent = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const content = await main(`Generate a blog post in simple text format on the topic: "${prompt}"`);
+    res.status(200).json({ success: true, content });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
