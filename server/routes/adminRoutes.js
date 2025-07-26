@@ -1,10 +1,14 @@
 import express from "express";
-import { adminLogin, approveCommentById, deleteCommentById, getAllBlogsByAdmin, getAllComments, getDashboardData } from "../controllers/adminController.js";
+import { registerAdmin, loginAdmin, approveCommentById, deleteCommentById, getAllBlogsByAdmin, getAllComments, getDashboardData } from "../controllers/adminController.js";
 import auth from "../middleware/auth.js";
 
 const adminRouter = express.Router();
 
-adminRouter.post("/login", adminLogin);
+// ✅ Auth routes
+adminRouter.post("/register", registerAdmin);
+adminRouter.post("/login", loginAdmin);
+
+// ✅ Protected routes
 adminRouter.get("/comments", auth, getAllComments);
 adminRouter.get("/blogs", auth, getAllBlogsByAdmin);
 adminRouter.post("/delete-comment", auth, deleteCommentById);
