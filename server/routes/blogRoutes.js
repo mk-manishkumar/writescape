@@ -5,10 +5,11 @@ import auth from "../middleware/auth.js";
 
 const blogRouter = express.Router();
 
-blogRouter.get("/", getAllBlogs);
 blogRouter.get("/:id", getBlogById);
 blogRouter.get("/comments/:blogId", getCommentsByBlogId);
 blogRouter.get("/my-blogs", auth, getUserBlogs);
+blogRouter.get("/", getAllBlogs);
+
 
 blogRouter.post("/add", upload.single("image"), auth, addBlog);
 blogRouter.post("/delete", auth, deleteBlog);
