@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useAppContext } from "../../context/AppContext";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-const Login = () => {
+const Register = () => {
   const { axios, setToken } = useAppContext();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -14,13 +15,17 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const { data } = await axios.post("/api/v1/admin/login", { email, password });
+      const { data } = await axios.post("/api/v1/admin/register", {
+        name,
+        email,
+        password,
+      });
 
       if (data.success) {
         setToken(data.token);
         localStorage.setItem("token", data.token);
         axios.defaults.headers.common["Authorization"] = data.token;
-        toast.success("Login successful!");
+        toast.success("Registration successful!");
         navigate("/admin/dashboard");
       } else {
         toast.error(data.message);
@@ -36,12 +41,16 @@ const Login = () => {
         <div className="flex flex-col items-center justify-center">
           <div className="w-full py-6 text-center">
             <h2 className="text-3xl font-bold">
-              <span className="text-primary">Admin</span> Login
+              <span className="text-primary">Admin</span> Register
             </h2>
-            <p className="font-light text-sm">Enter your credentials to access the Admin Panel</p>
+            <p className="font-light text-sm">Create an admin account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="mt-6 w-full sm:max-w-md text-gray-600">
+            <div className="flex flex-col">
+              <label htmlFor="name">Name</label>
+              <input type="text" placeholder="Enter your name" className="border-b-2 border-gray-300 p-2 outline-none mb-6" onChange={(e) => setName(e.target.value)} value={name} required />
+            </div>
             <div className="flex flex-col">
               <label htmlFor="email">Email</label>
               <input type="email" placeholder="Enter your email" className="border-b-2 border-gray-300 p-2 outline-none mb-6" onChange={(e) => setEmail(e.target.value)} value={email} required />
@@ -51,19 +60,20 @@ const Login = () => {
               <input type="password" placeholder="Enter your password" className="border-b-2 border-gray-300 p-2 outline-none mb-6" onChange={(e) => setPassword(e.target.value)} value={password} required />
             </div>
             <button type="submit" className="w-full py-3 font-medium bg-primary text-white rounded cursor-pointer hover:bg-primary/90 transition-all">
-              Login
+              Register
             </button>
-            <p className="text-sm text-center mt-6">
-              Don't have an account?{" "}
-              <Link to="/admin/register" className="text-primary hover:underline">
-                Register
-              </Link>
-            </p>
           </form>
+
+          <p className="text-sm text-center mt-6">
+            Already have an account?{" "}
+            <Link to="/admin" className="text-primary hover:underline">
+              Login
+            </Link>
+          </p>
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Register;
