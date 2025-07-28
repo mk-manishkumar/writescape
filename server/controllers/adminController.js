@@ -12,13 +12,17 @@ export const registerAdmin = async (req, res) => {
     const existing = await Admin.findOne({ email });
     if (existing) return res.status(400).json({ message: "User already exists" });
 
-    await Admin.create({ email, fullname, password });
+    const admin = await Admin.create({ email, fullname, password });
+
+    const token = jwt.sign({ id: admin._id }, JWT_SECRET, { expiresIn: "7d" });
 
     res.status(201).json({
       success: true,
       message: "User registered successfully",
+      token: token,
     });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -21,7 +21,7 @@ const Login = () => {
         localStorage.setItem("token", data.token);
         axios.defaults.headers.common["Authorization"] = data.token;
         toast.success("Login successful!");
-        navigate("/admin/dashboard");
+        navigate("/admin");
       } else {
         toast.error(data.message);
       }

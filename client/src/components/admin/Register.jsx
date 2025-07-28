@@ -1,22 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useAppContext } from "../../context/AppContext";
 import { useNavigate, Link } from "react-router-dom";
 
 const Register = () => {
-  const { axios, setToken } = useAppContext();
+  const { axios, setToken, token } = useAppContext();
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
+  const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (token) {
+      navigate("/admin");
+    }
+  }, [token, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const { data } = await axios.post("/api/v1/admin/register", {
-        name,
+        fullname,
         email,
         password,
       });
@@ -26,7 +33,7 @@ const Register = () => {
         localStorage.setItem("token", data.token);
         axios.defaults.headers.common["Authorization"] = data.token;
         toast.success("Registration successful!");
-        navigate("/admin/dashboard");
+        navigate("/admin"); // ✅ NOT /admin/dashboard
       } else {
         toast.error(data.message);
       }
@@ -48,8 +55,8 @@ const Register = () => {
 
           <form onSubmit={handleSubmit} className="mt-6 w-full sm:max-w-md text-gray-600">
             <div className="flex flex-col">
-              <label htmlFor="name">Name</label>
-              <input type="text" placeholder="Enter your name" className="border-b-2 border-gray-300 p-2 outline-none mb-6" onChange={(e) => setName(e.target.value)} value={name} required />
+              <label htmlFor="fullname">Full Name</label>
+              <input type="text" placeholder="Enter your full name" className="border-b-2 border-gray-300 p-2 outline-none mb-6" onChange={(e) => setFullname(e.target.value)} value={fullname} required />
             </div>
             <div className="flex flex-col">
               <label htmlFor="email">Email</label>
