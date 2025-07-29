@@ -42,10 +42,13 @@ const AddBlog = () => {
       e.preventDefault();
       setIsAdding(true);
 
-      const blog = { title, subTitle, description: quillRef.current.root.innerHTML, category, isPublished };
-
       const formData = new FormData();
-      formData.append("blog", JSON.stringify(blog));
+
+      formData.append("title", title);
+      formData.append("subtitle", subTitle); 
+      formData.append("description", quillRef.current.root.innerHTML);
+      formData.append("category", category);
+      formData.append("isPublished", isPublished);
       formData.append("image", image);
 
       const { data } = await axios.post("/api/v1/blog/add", formData);
@@ -53,13 +56,15 @@ const AddBlog = () => {
         toast.success(data.message);
         setImage(false);
         setTitle("");
+        setSubTitle(""); 
         quillRef.current.root.innerHTML = "";
         setCategory("");
+        setIsPublished(false); 
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error?.response?.data?.message || error.message);
     } finally {
       setIsAdding(false);
     }

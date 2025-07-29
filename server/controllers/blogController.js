@@ -4,7 +4,7 @@ import main from "../configs/gemini.js";
 
 export const addBlog = async (req, res) => {
   try {
-    const { title, subtitle, description, category, isPublished } = req.body;
+    const { title, subTitle, description, category, isPublished } = req.body;
     const image = req.file ? req.file.filename : null;
 
     if (!title || !description || !category) {
@@ -13,7 +13,7 @@ export const addBlog = async (req, res) => {
 
     const newBlog = await Blog.create({
       title,
-      subtitle,
+      subTitle,
       description,
       category,
       image,
@@ -23,6 +23,8 @@ export const addBlog = async (req, res) => {
 
     res.status(201).json({ success: true, blog: newBlog });
   } catch (err) {
+    console.log(err.message);
+    
     res.status(500).json({ success: false, message: err.message });
   }
 };
