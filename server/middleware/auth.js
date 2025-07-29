@@ -3,11 +3,16 @@ import jwt from "jsonwebtoken";
 const auth = (req, res, next) => {
   const token = req.headers.authorization;
 
+  if (!token) {
+    return res.status(401).json({ success: false, message: "No token provided" });
+  }
+
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // This will have _id, email, fullname from your login token
     next();
   } catch (error) {
-    return res.status(401).json({ success: false, message: "Unauthorized" });
+    return res.status(401).json({ success: false, message: "Invalid token" });
   }
 };
 

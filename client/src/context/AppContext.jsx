@@ -13,6 +13,7 @@ export const AppProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [input, setInput] = useState("");
+  const [isInitialized, setIsInitialized] = useState(false); // ✅ Track initialization
 
   // Setup Axios headers whenever token changes
   useEffect(() => {
@@ -38,14 +39,27 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Initial load: fetch blogs and check for stored token
+  // ✅ Initialize token first, then fetch blogs
   useEffect(() => {
-    fetchBlogs();
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
-    }
+    const initializeAuth = async () => {
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
+        setToken(storedToken);
+        // Set axios headers immediately
+        axios.defaults.headers.common["Authorization"] = storedToken;
+      }
+      setIsInitialized(true);
+    };
+
+    initializeAuth();
   }, []);
+
+  // ✅ Fetch blogs only after initialization
+  useEffect(() => {
+    if (isInitialized) {
+      fetchBlogs();
+    }
+  }, [isInitialized]);
 
   const value = useMemo(
     () => ({
@@ -58,8 +72,9 @@ export const AppProvider = ({ children }) => {
       input,
       setInput,
       fetchBlogs,
+      isInitialized, // ✅ Expose initialization state
     }),
-    [navigate, token, blogs, input]
+    [navigate, token, blogs, input, isInitialized]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
