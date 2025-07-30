@@ -4,27 +4,16 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+axios.defaults.withCredentials = true; 
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const navigate = useNavigate();
 
-  const [token, setToken] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [input, setInput] = useState("");
-  const [isInitialized, setIsInitialized] = useState(false); // ✅ Track initialization
-
-  // Setup Axios headers whenever token changes
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = token;
-      localStorage.setItem("token", token);
-    } else {
-      delete axios.defaults.headers.common["Authorization"];
-      localStorage.removeItem("token");
-    }
-  }, [token]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchBlogs = async () => {
     try {
@@ -39,22 +28,10 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ✅ Initialize token first, then fetch blogs
   useEffect(() => {
-    const initializeAuth = async () => {
-      const storedToken = localStorage.getItem("token");
-      if (storedToken) {
-        setToken(storedToken);
-        // Set axios headers immediately
-        axios.defaults.headers.common["Authorization"] = storedToken;
-      }
-      setIsInitialized(true);
-    };
-
-    initializeAuth();
+    setIsInitialized(true); 
   }, []);
 
-  // ✅ Fetch blogs only after initialization
   useEffect(() => {
     if (isInitialized) {
       fetchBlogs();
@@ -65,21 +42,17 @@ export const AppProvider = ({ children }) => {
     () => ({
       axios,
       navigate,
-      token,
-      setToken,
       blogs,
       setBlogs,
       input,
       setInput,
       fetchBlogs,
-      isInitialized, // ✅ Expose initialization state
+      isInitialized,
     }),
-    [navigate, token, blogs, input, isInitialized]
+    [navigate, blogs, input, isInitialized]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-export const useAppContext = () => {
-  return useContext(AppContext);
-};
+export const useAppContext = () => useContext(AppContext);

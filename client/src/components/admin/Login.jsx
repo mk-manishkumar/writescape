@@ -4,8 +4,8 @@ import { useAppContext } from "../../context/AppContext";
 import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { axios, setToken } = useAppContext();
-  const navigate = useNavigate()
+  const { axios, setAdmin } = useAppContext();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,16 +17,16 @@ const Login = () => {
       const { data } = await axios.post("/api/v1/admin/login", { email, password });
 
       if (data.success) {
-        setToken(data.token);
-        localStorage.setItem("token", data.token);
-        axios.defaults.headers.common["Authorization"] = data.token;
+        const profileRes = await axios.get("/api/v1/admin/profile");
+        setAdmin(profileRes.data.admin);
+
         toast.success("Login successful!");
         navigate("/admin");
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "Login failed");
     }
   };
 

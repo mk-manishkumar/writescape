@@ -4,6 +4,12 @@ import Admin from "../models/Admin.model.js";
 import Comment from "../models/Comment.model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "Strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
 export const registerAdmin = async (req, res) => {
   try {
@@ -16,11 +22,7 @@ export const registerAdmin = async (req, res) => {
 
     const token = jwt.sign({ id: admin._id }, JWT_SECRET, { expiresIn: "7d" });
 
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      token: token,
-    });
+    res.status(201).cookie("token", token, COOKIE_OPTIONS).json({ success: true, message: "User registered successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -31,14 +33,10 @@ export const loginAdmin = async (req, res) => {
     const { email, password } = req.body;
 
     const admin = await Admin.findOne({ email });
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found" });
-    }
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
 
     const isMatch = await admin.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       {
@@ -47,14 +45,24 @@ export const loginAdmin = async (req, res) => {
         fullname: admin.fullname,
       },
       JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
 
-    res.status(200).json({ success: true, message: "Login successful", token });
+    res.status(200).cookie("token", token, COOKIE_OPTIONS).json({ success: true, message: "Login successful" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const logoutAdmin = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "Strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+  res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
 
 export const getAllBlogsByAdmin = async (req, res) => {
   try {

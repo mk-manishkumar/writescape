@@ -1,5 +1,5 @@
 import express from "express";
-import { registerAdmin, loginAdmin, approveCommentById, deleteCommentById, getAllBlogsByAdmin, getAllComments, getDashboardData } from "../controllers/adminController.js";
+import { registerAdmin, loginAdmin, approveCommentById, deleteCommentById, getAllBlogsByAdmin, getAllComments, getDashboardData, logoutAdmin } from "../controllers/adminController.js";
 import auth from "../middleware/auth.js";
 
 const adminRouter = express.Router();
@@ -7,6 +7,7 @@ const adminRouter = express.Router();
 // ✅ Auth routes
 adminRouter.post("/register", registerAdmin);
 adminRouter.post("/login", loginAdmin);
+adminRouter.post("/logout", logoutAdmin);
 
 // ✅ Protected routes
 adminRouter.get("/comments", auth, getAllComments);

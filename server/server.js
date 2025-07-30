@@ -1,6 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { connectDb } from "./configs/db.js";
 import adminRouter from "./routes/adminRoutes.js";
 import blogRouter from "./routes/blogRoutes.js";
@@ -12,6 +13,8 @@ await connectDb();
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+
 
 // Routes
 app.get("/", (req, res) => res.send("Welcome to the Writescape API"));
