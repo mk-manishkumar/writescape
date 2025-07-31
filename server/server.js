@@ -11,10 +11,10 @@ const app = express();
 await connectDb();
 
 // Middlewares
-app.use(cors());
+const allowedOrigin = "http://localhost:5173";
+app.use(cors({ origin: allowedOrigin, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-
 
 // Routes
 app.get("/", (req, res) => res.send("Welcome to the Writescape API"));
