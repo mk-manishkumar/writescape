@@ -32,7 +32,7 @@ const Dashboard = () => {
       {/* Stat Cards Section */}
       <div className="flex flex-wrap gap-4">
         {/* Total Blogs Card */}
-        <div className="flex items-center gap-4 bg-white p-4 rounded min-w-58 shadow cursor-pointer hover::scale-105 transition-all">
+        <div className="flex items-center gap-4 bg-white p-4 rounded min-w-58 shadow cursor-pointer hover:scale-105 transition-all">
           <img src={assets.dashboard_icon_1} alt="" />
           <div>
             <p className="text-xl font-semibold text-gray-600">{dashboardData.blogs}</p>
@@ -40,7 +40,7 @@ const Dashboard = () => {
           </div>
         </div>
         {/* Total Comments Card */}
-        <div className="flex items-center gap-4 bg-white p-4 rounded min-w-58 shadow cursor-pointer hover::scale-105 transition-all">
+        <div className="flex items-center gap-4 bg-white p-4 rounded min-w-58 shadow cursor-pointer hover:scale-105 transition-all">
           <img src={assets.dashboard_icon_2} alt="" />
           <div>
             <p className="text-xl font-semibold text-gray-600">{dashboardData.comments}</p>
@@ -48,7 +48,7 @@ const Dashboard = () => {
           </div>
         </div>
         {/* Total Drafts Card */}
-        <div className="flex items-center gap-4 bg-white p-4 rounded min-w-58 shadow cursor-pointer hover::scale-105 transition-all">
+        <div className="flex items-center gap-4 bg-white p-4 rounded min-w-58 shadow cursor-pointer hover:scale-105 transition-all">
           <img src={assets.dashboard_icon_3} alt="" />
           <div>
             <p className="text-xl font-semibold text-gray-600">{dashboardData.drafts}</p>
@@ -93,7 +93,7 @@ const Dashboard = () => {
                   blog={blog}
                   fetchBlogs={() => {
                     axios
-                      .get("/api/admin/dashboard")
+                      .get("/api/v1/admin/dashboard") 
                       .then(({ data }) => {
                         if (data.success) setDashboardData(data.dashboardData);
                         else toast.error(data.message);
