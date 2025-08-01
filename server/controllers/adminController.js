@@ -22,7 +22,18 @@ export const registerAdmin = async (req, res) => {
 
     const token = jwt.sign({ id: admin._id }, JWT_SECRET, { expiresIn: "7d" });
 
-    res.status(201).cookie("token", token, COOKIE_OPTIONS).json({ success: true, message: "User registered successfully" });
+    res
+      .status(201)
+      .cookie("token", token, COOKIE_OPTIONS)
+      .json({
+        success: true,
+        message: "User registered successfully",
+        admin: {
+          id: admin._id,
+          email: admin.email,
+          fullname: admin.fullname,
+        },
+      });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -48,7 +59,18 @@ export const loginAdmin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.status(200).cookie("token", token, COOKIE_OPTIONS).json({ success: true, message: "Login successful" });
+    res
+      .status(200)
+      .cookie("token", token, COOKIE_OPTIONS)
+      .json({
+        success: true,
+        message: "Login successful",
+        admin: {
+          id: admin._id,
+          email: admin.email,
+          fullname: admin.fullname,
+        },
+      });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -62,7 +84,6 @@ export const logoutAdmin = (req, res) => {
   });
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
-
 
 export const getAllBlogsByAdmin = async (req, res) => {
   try {
@@ -89,7 +110,13 @@ export const getDashboardData = async (req, res) => {
     const totalComments = await Comment.countDocuments();
     const drafts = await Blog.countDocuments({ isPublished: false });
 
-    const dashboardData = { recentBlogs, totalBlogs, totalComments, drafts };
+    const dashboardData = {
+      recentBlogs,
+      totalBlogs,
+      totalComments,
+      drafts,
+      blogs: totalBlogs, 
+    };
 
     res.status(200).json({ success: true, dashboardData });
   } catch (error) {

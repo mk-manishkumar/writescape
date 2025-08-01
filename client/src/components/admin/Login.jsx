@@ -4,7 +4,7 @@ import { useAppContext } from "../../context/AppContext";
 import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { axios, setAdmin } = useAppContext();
+  const { axios, setAdmin, setToken } = useAppContext();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -17,11 +17,12 @@ const Login = () => {
       const { data } = await axios.post("/api/v1/admin/login", { email, password });
 
       if (data.success) {
-        const profileRes = await axios.get("/api/v1/admin/profile");
-        setAdmin(profileRes.data.admin);
+        // Backend now returns admin data directly (no need for profile call)
+        setAdmin(data.admin);
+        setToken(true);
 
         toast.success("Login successful!");
-        navigate("/admin");
+        navigate("/admin"); // This will navigate to dashboard
       } else {
         toast.error(data.message);
       }

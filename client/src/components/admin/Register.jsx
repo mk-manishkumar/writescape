@@ -4,7 +4,7 @@ import { useAppContext } from "../../context/AppContext";
 import { useNavigate, Link } from "react-router-dom";
 
 const Register = () => {
-  const { axios, setAdmin, admin } = useAppContext();
+  const { axios, setAdmin, setToken, token } = useAppContext();
   const navigate = useNavigate();
 
   const [fullname, setFullname] = useState("");
@@ -13,10 +13,10 @@ const Register = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (admin) {
+    if (token) {
       navigate("/admin");
     }
-  }, [admin, navigate]);
+  }, [token, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,11 +29,11 @@ const Register = () => {
       });
 
       if (data.success) {
-        const profileRes = await axios.get("/api/v1/admin/profile");
-        setAdmin(profileRes.data.admin);
+        setAdmin(data.admin);
+        setToken(true);
 
         toast.success("Registration successful!");
-        navigate("/admin");
+        navigate("/admin"); 
       } else {
         toast.error(data.message);
       }

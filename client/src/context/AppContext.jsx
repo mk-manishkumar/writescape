@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
-axios.defaults.withCredentials = true; 
+axios.defaults.withCredentials = true;
 
 const AppContext = createContext();
 
@@ -15,7 +15,10 @@ export const AppProvider = ({ children }) => {
   const [input, setInput] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const fetchBlogs = async () => {
+  const [admin, setAdmin] = useState(null);
+  const [token, setToken] = useState(null);
+
+  const fetchBlogs = useCallback(async () => {
     try {
       const res = await axios.get("/api/v1/blog");
       if (res.data.success) {
@@ -26,17 +29,43 @@ export const AppProvider = ({ children }) => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to fetch blogs");
     }
-  };
+  }, []);
+
+  const checkAuthStatus = useCallback(async () => {
+    try {
+      const res = await axios.get("/api/v1/admin/dashboard");
+      if (res.data.success) {
+        setToken(true); 
+      }
+    } catch {
+      setAdmin(null);
+      setToken(null);
+    }
+  }, []);
+
+  // Logout function
+  const logout = useCallback(async () => {
+    try {
+      await axios.post("/api/v1/admin/logout");
+      setAdmin(null);
+      setToken(null);
+      navigate("/admin");
+      toast.success("Logged out successfully");
+    } catch {
+      toast.error("Logout failed");
+    }
+  }, [navigate]);
 
   useEffect(() => {
-    setIsInitialized(true); 
-  }, []);
+    setIsInitialized(true);
+    checkAuthStatus(); 
+  }, [checkAuthStatus]);
 
   useEffect(() => {
     if (isInitialized) {
       fetchBlogs();
     }
-  }, [isInitialized]);
+  }, [isInitialized, fetchBlogs]);
 
   const value = useMemo(
     () => ({
@@ -48,8 +77,13 @@ export const AppProvider = ({ children }) => {
       setInput,
       fetchBlogs,
       isInitialized,
+      admin,
+      setAdmin,
+      token,
+      setToken,
+      logout,
     }),
-    [navigate, blogs, input, isInitialized]
+    [navigate, blogs, input, isInitialized, admin, token, fetchBlogs, logout]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
