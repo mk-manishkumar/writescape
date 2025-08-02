@@ -17,6 +17,7 @@ export const AppProvider = ({ children }) => {
 
   const [admin, setAdmin] = useState(null);
   const [token, setToken] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true); 
 
   const fetchBlogs = useCallback(async () => {
     try {
@@ -35,11 +36,13 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await axios.get("/api/v1/admin/dashboard");
       if (res.data.success) {
-        setToken(true); 
+        setToken(true);
       }
     } catch {
       setAdmin(null);
       setToken(null);
+    } finally {
+      setIsAuthLoading(false); 
     }
   }, []);
 
@@ -58,7 +61,7 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     setIsInitialized(true);
-    checkAuthStatus(); 
+    checkAuthStatus();
   }, [checkAuthStatus]);
 
   useEffect(() => {
@@ -82,8 +85,9 @@ export const AppProvider = ({ children }) => {
       token,
       setToken,
       logout,
+      isAuthLoading, // Add to context value
     }),
-    [navigate, blogs, input, isInitialized, admin, token, fetchBlogs, logout]
+    [navigate, blogs, input, isInitialized, admin, token, fetchBlogs, logout, isAuthLoading]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

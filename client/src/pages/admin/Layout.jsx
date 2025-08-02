@@ -4,14 +4,7 @@ import Sidebar from "../../components/admin/Sidebar";
 import { useAppContext } from "../../context/AppContext";
 
 const Layout = () => {
-  const { axios, setToken, navigate } = useAppContext();
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    axios.defaults.headers.common["Authorization"] = null;
-    setToken(null);
-    navigate("/");
-  };
+  const { logout } = useAppContext(); // Use the logout from AppContext
 
   return (
     <>
