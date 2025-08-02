@@ -5,12 +5,17 @@ import auth from "../middleware/auth.js";
 
 const blogRouter = express.Router();
 
-blogRouter.get("/:id", getBlogById);
-blogRouter.get("/comments/:blogId", getCommentsByBlogId);
+// ✅ Specific routes first (before parameterized routes)
 blogRouter.get("/my-blogs", auth, getUserBlogs);
+blogRouter.get("/comments/:blogId", getCommentsByBlogId);
+
+// ✅ General routes
 blogRouter.get("/", getAllBlogs);
 
+// ✅ Parameterized routes last
+blogRouter.get("/:id", getBlogById);
 
+// ✅ POST routes
 blogRouter.post("/add", upload.single("image"), auth, addBlog);
 blogRouter.post("/delete", auth, deleteBlog);
 blogRouter.post("/toggle-publish", auth, togglePublishBlog);

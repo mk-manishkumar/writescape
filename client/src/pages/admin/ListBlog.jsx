@@ -1,41 +1,129 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState, useCallback } from "react";
+import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 
 const ListBlog = () => {
   const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const { token } = useAppContext(); 
+  const backendUrl = import.meta.env.VITE_BASE_URL;
+
+  const fetchBlogs = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${backendUrl}/api/admin/blogs`, {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setBlogs(data.blogs);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching blogs:", error);
+      toast.error("Failed to fetch blogs");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, backendUrl]);
+
+  const deleteBlog = async (blogId) => {
+    if (!window.confirm("Are you sure you want to delete this blog?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${backendUrl}/api/blog/${blogId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Blog deleted successfully");
+        fetchBlogs(); // Refresh the list
+      } else {
+        toast.error(data.message || "Failed to delete blog");
+      }
+    } catch (error) {
+      console.error("Error deleting blog:", error);
+      toast.error("Failed to delete blog");
+    }
+  };
 
   useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const { data } = await axios.get("/api/v1/admin/blogs");
-        if (data.success) {
-          setBlogs(data.blogs);
-        } else {
-          toast.error(data.message);
-        }
-      } catch (error) {
-        toast.error(error.message || "Failed to fetch blogs.");
-      }
-    };
+    if (token) {
+      fetchBlogs();
+    }
+  }, [fetchBlogs, token]);
 
-    fetchBlogs();
-  }, []); 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">All Blogs</h2>
+    <div className="flex-1 pt-6 px-5 sm:pt-12 sm:pl-16 bg-blue-50/50">
+      <div className="flex items-center justify-between max-w-4xl mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">All Blogs</h2>
+        <span className="text-sm text-gray-600">Total: {blogs.length}</span>
+      </div>
+
       {blogs.length === 0 ? (
-        <p>No blogs found.</p>
+        <div className="bg-white rounded-lg shadow p-8 text-center max-w-4xl">
+          <p className="text-gray-500 text-lg">No blogs found.</p>
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <div className="grid gap-6 max-w-4xl">
           {blogs.map((blog) => (
-            <li key={blog._id} className="border p-4 rounded-md">
-              <h3 className="text-lg font-semibold">{blog.title}</h3>
-              <p className="text-sm text-gray-600">{blog.content}</p>
-            </li>
+            <div key={blog._id} className="bg-white rounded-lg shadow p-6 border border-gray-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4 mb-3">
+                    {blog.image && <img src={blog.image} alt={blog.title} className="w-16 h-16 object-cover rounded-lg" />}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-1">{blog.title}</h3>
+                      <p className="text-sm text-gray-600">
+                        By {blog.authorId?.fullname || "Unknown Author"} • {blog.category}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 mb-3 line-clamp-2">{blog.description}</p>
+
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>Published: {new Date(blog.date).toLocaleDateString()}</span>
+                    <span>Updated: {new Date(blog.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 ml-4">
+                  <button onClick={() => window.open(`/blog/${blog._id}`, "_blank")} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm transition-colors">
+                    View
+                  </button>
+                  <button onClick={() => window.open(`/edit-blog/${blog._id}`, "_blank")} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm transition-colors">
+                    Edit
+                  </button>
+                  <button onClick={() => deleteBlog(blog._id)} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm transition-colors">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

@@ -7,20 +7,35 @@ const Comments = () => {
   const [comments, setComments] = useState([]);
   const [filter, setFilter] = useState("Not Approved");
 
-  const { axios } = useAppContext();
+  const { token } = useAppContext();
+  const backendUrl = import.meta.env.VITE_BASE_URL;
 
   const fetchComments = useCallback(async () => {
     try {
-      const { data } = await axios.get("/api/v1/admin/comments");
-      data.success ? setComments(data.comments) : toast.error(data.message);
+      const response = await fetch(`${backendUrl}/api/admin/comments`, {
+        headers: {
+          Authorization: `Bearer ${token}`, 
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setComments(data.comments);
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Error fetching comments:", error);
+      toast.error("Failed to fetch comments");
     }
-  }, [axios]);
+  }, [token, backendUrl]);
 
   useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
+    if (token) {
+      fetchComments();
+    }
+  }, [fetchComments, token]);
 
   return (
     <div className="flex-1 pt-6 px-5 sm:pt-12 sm:pl-16 bg-blue-50/50">
@@ -60,6 +75,8 @@ const Comments = () => {
               ))}
           </tbody>
         </table>
+
+        {comments.filter((comment) => (filter === "Approved" ? comment.isApproved === true : comment.isApproved === false)).length === 0 && <div className="text-center py-8 text-gray-500">No {filter.toLowerCase()} comments found.</div>}
       </div>
     </div>
   );
