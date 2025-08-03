@@ -6,11 +6,21 @@ import toast from "react-hot-toast";
 const CommentTableItem = ({ comment, fetchComments }) => {
   const { blog, createdAt, _id } = comment;
   const BlogDate = new Date(createdAt);
-  const { axios } = useAppContext();
+  const { token } = useAppContext(); 
 
   const approveComment = async () => {
     try {
-      const { data } = await axios.post("/api/v1/admin/approve-comment", { id: _id });
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/approve-comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: _id }),
+      });
+
+      const data = await response.json();
+
       if (data.success) {
         toast.success(data.message);
         fetchComments();
@@ -18,7 +28,7 @@ const CommentTableItem = ({ comment, fetchComments }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to approve comment");
     }
   };
 
@@ -27,7 +37,17 @@ const CommentTableItem = ({ comment, fetchComments }) => {
       const confirm = window.confirm("Are you sure you want to delete this comment?");
       if (!confirm) return;
 
-      const { data } = await axios.post("/api/v1/admin/delete-comment", { id: _id });
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/admin/delete-comment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: _id }),
+      });
+
+      const data = await response.json();
+
       if (data.success) {
         toast.success(data.message);
         fetchComments();
@@ -35,14 +55,14 @@ const CommentTableItem = ({ comment, fetchComments }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to delete comment");
     }
   };
 
   return (
     <tr className="border-y border-gray-300">
       <td className="px-6 py-4">
-        <b className="font-medium text-gray-600">Blog</b> : {blog.title}
+        <b className="font-medium text-gray-600">Blog</b> : {blog?.title || "N/A"}
         <br />
         <br />
         <b className="font-medium text-gray-600">Name</b> : {comment.name}

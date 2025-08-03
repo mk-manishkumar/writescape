@@ -7,7 +7,7 @@ const Header = () => {
   const inputRef = useRef();
 
   const onSubmitHandler = async (e) => {
-    e.preventdefault();
+    e.preventDefault(); 
     setInput(inputRef.current.value);
   };
 
@@ -28,10 +28,10 @@ const Header = () => {
           Your own <span className="text-primary">blogging</span> <br /> platform.
         </h1>
 
-        <p className="my-6 sm:my-8 max-w-2xl m-auto max-sm:text-xs font-extralight">Welcome to our blog, a space for sharing thoughtful stories, ideas, and experiences. Whether you're here to learn, reflect, or explore, we’re glad to have you with us.</p>
+        <p className="my-6 sm:my-8 max-w-2xl m-auto max-sm:text-xs font-extralight">Welcome to our blog, a space for sharing thoughtful stories, ideas, and experiences. Whether you're here to learn, reflect, or explore, we're glad to have you with us.</p>
 
         <form onSubmit={onSubmitHandler} className="flex justify-between max-w-lg max-sm:scale-75 mx-auto border border-gray-300 bg-white rounded overflow-hidden">
-          <input ref={inputRef} type="text" placeholder="Search for blogs" className="w-full pl-4 outline-none" required />
+          <input ref={inputRef} type="text" placeholder="Search for blogs" className="w-full pl-4 outline-none" />
           <button type="submit" className="bg-primary text-white px-8 py-2 m-1.5 rounded hover:scale-105 transition-all cursor-pointer">
             Search
           </button>
