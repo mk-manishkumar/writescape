@@ -1,33 +1,36 @@
 import React, { useEffect, useState, useCallback } from "react";
 import CommentTableItem from "../../components/admin/CommentTableItem";
 import { useAppContext } from "../../context/AppContext";
+import axios from "axios";
 import toast from "react-hot-toast";
 
 const Comments = () => {
   const [comments, setComments] = useState([]);
   const [filter, setFilter] = useState("Not Approved");
+  const [loading, setLoading] = useState(true);
 
   const { token } = useAppContext();
   const backendUrl = import.meta.env.VITE_BASE_URL;
 
   const fetchComments = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/admin/comments`, {
+      setLoading(true);
+      const response = await axios.get(`${backendUrl}/api/v1/admin/comments`, {
         headers: {
-          Authorization: `Bearer ${token}`, 
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setComments(data.comments);
+      if (response.data.success) {
+        setComments(response.data.comments);
       } else {
-        toast.error(data.message);
+        toast.error(response.data.message || "Failed to fetch comments");
       }
     } catch (error) {
       console.error("Error fetching comments:", error);
       toast.error("Failed to fetch comments");
+    } finally {
+      setLoading(false);
     }
   }, [token, backendUrl]);
 
@@ -37,11 +40,18 @@ const Comments = () => {
     }
   }, [fetchComments, token]);
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 pt-6 px-5 sm:pt-12 sm:pl-16 bg-blue-50/50">
       <div className="flex items-center justify-between max-w-3xl">
         <h2>Comments</h2>
-
         <div className="flex gap-4">
           <button onClick={() => setFilter("Approved")} className={`shadow-custom-sm border rounded-full px-4 py-1 cursor-pointer text-xs ${filter === "Approved" ? "text-primary" : "text-gray-700"}`}>
             Approved

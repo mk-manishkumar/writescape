@@ -6,32 +6,25 @@ const ListBlog = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { token } = useAppContext(); 
-  const backendUrl = import.meta.env.VITE_BASE_URL;
+  const { axios, token } = useAppContext();
 
   const fetchBlogs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${backendUrl}/api/admin/blogs`, {
-        headers: {
-          Authorization: `Bearer ${token}`, 
-        },
-      });
+      const response = await axios.get("/api/v1/admin/blogs");
 
-      const data = await response.json();
-
-      if (data.success) {
-        setBlogs(data.blogs);
+      if (response.data.success) {
+        setBlogs(response.data.blogs);
       } else {
-        toast.error(data.message);
+        toast.error(response.data.message);
       }
     } catch (error) {
       console.error("Error fetching blogs:", error);
-      toast.error("Failed to fetch blogs");
+      toast.error(error.response?.data?.message || "Failed to fetch blogs");
     } finally {
       setLoading(false);
     }
-  }, [token, backendUrl]);
+  }, [axios]);
 
   const deleteBlog = async (blogId) => {
     if (!window.confirm("Are you sure you want to delete this blog?")) {
@@ -39,24 +32,17 @@ const ListBlog = () => {
     }
 
     try {
-      const response = await fetch(`${backendUrl}/api/blog/${blogId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(`/api/v1/blog/${blogId}`);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         toast.success("Blog deleted successfully");
         fetchBlogs(); // Refresh the list
       } else {
-        toast.error(data.message || "Failed to delete blog");
+        toast.error(response.data.message || "Failed to delete blog");
       }
     } catch (error) {
       console.error("Error deleting blog:", error);
-      toast.error("Failed to delete blog");
+      toast.error(error.response?.data?.message || "Failed to delete blog");
     }
   };
 
@@ -113,7 +99,7 @@ const ListBlog = () => {
                   <button onClick={() => window.open(`/blog/${blog._id}`, "_blank")} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm transition-colors">
                     View
                   </button>
-                  <button onClick={() => window.open(`/edit-blog/${blog._id}`, "_blank")} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm transition-colors">
+                  <button onClick={() => window.open(`/edit-blog/${blog._id}`, "_blank")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors">
                     Edit
                   </button>
                   <button onClick={() => deleteBlog(blog._id)} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm transition-colors">
