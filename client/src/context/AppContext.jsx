@@ -17,11 +17,11 @@ export const AppProvider = ({ children }) => {
 
   const [admin, setAdmin] = useState(null);
   const [token, setToken] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true); 
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const fetchBlogs = useCallback(async () => {
     try {
-      const res = await axios.get("/api/v1/blog");
+      const res = await axios.get("/api/v1/blog"); // Correct: keeping v1
       if (res.data.success) {
         setBlogs(res.data.blogs);
       } else {
@@ -34,27 +34,33 @@ export const AppProvider = ({ children }) => {
 
   const checkAuthStatus = useCallback(async () => {
     try {
-      const res = await axios.get("/api/v1/admin/dashboard");
+      const res = await axios.get("/api/v1/admin/dashboard"); 
       if (res.data.success) {
-        setToken(true);
+        setAdmin(res.data.admin); 
+        setToken(res.data.token || true); 
       }
-    } catch {
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
       setAdmin(null);
       setToken(null);
     } finally {
-      setIsAuthLoading(false); 
+      setIsAuthLoading(false);
     }
   }, []);
 
   // Logout function
   const logout = useCallback(async () => {
     try {
-      await axios.post("/api/v1/admin/logout");
+      await axios.post("/api/v1/admin/logout"); 
       setAdmin(null);
       setToken(null);
       navigate("/admin");
       toast.success("Logged out successfully");
-    } catch {
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      setAdmin(null);
+      setToken(null);
+      navigate("/admin");
       toast.error("Logout failed");
     }
   }, [navigate]);
@@ -85,7 +91,7 @@ export const AppProvider = ({ children }) => {
       token,
       setToken,
       logout,
-      isAuthLoading, // Add to context value
+      isAuthLoading,
     }),
     [navigate, blogs, input, isInitialized, admin, token, fetchBlogs, logout, isAuthLoading]
   );
