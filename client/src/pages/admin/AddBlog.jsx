@@ -4,11 +4,9 @@ import Quill from "quill";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 import { parse } from "marked";
-import axios from "axios";
 
 const AddBlog = () => {
-  const { token } = useAppContext();
-  const backendUrl = import.meta.env.VITE_BASE_URL;
+  const { axios } = useAppContext();
 
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,20 +20,13 @@ const AddBlog = () => {
   const [category, setCategory] = useState("");
   const [isPublished, setIsPublished] = useState(false);
 
+  // Function to create AI generated content
   const generateContent = async () => {
     if (!title) return toast.error("Please enter a title");
 
     try {
       setLoading(true);
-      const response = await axios.post(
-        `${backendUrl}/api/v1/blog/generate`,
-        { prompt: title },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.post("/api/v1/blog/generate", { prompt: title });
 
       if (response.data.success) {
         quillRef.current.root.innerHTML = parse(response.data.content);
@@ -43,13 +34,13 @@ const AddBlog = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.error("Error generating content:", error);
-      toast.error("Failed to generate content");
+      toast.error(error.response?.data?.message || "Failed to generate content");
     } finally {
       setLoading(false);
     }
   };
 
+  // Function to submit a blog
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     setIsAdding(true);
@@ -63,15 +54,15 @@ const AddBlog = () => {
     try {
       const formData = new FormData();
       formData.append("title", title);
-      formData.append("subtitle", subTitle);
-      formData.append("content", quillRef.current.root.innerHTML);
+      formData.append("subTitle", subTitle); 
+      formData.append("description", quillRef.current.root.innerHTML); 
       formData.append("category", category);
       formData.append("isPublished", isPublished);
       formData.append("image", image);
 
-      const response = await axios.post(`${backendUrl}/api/v1/blog/add`, formData, {
+      const response = await axios.post("/api/v1/blog/add", formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       });
 
@@ -82,12 +73,12 @@ const AddBlog = () => {
         setSubTitle("");
         quillRef.current.root.innerHTML = "";
         setCategory("");
+        setIsPublished(false);
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.error("Error adding blog:", error);
-      toast.error("Failed to add blog");
+      toast.error(error.response?.data?.message || "Failed to add blog");
     } finally {
       setIsAdding(false);
     }
