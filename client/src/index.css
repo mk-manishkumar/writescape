@@ -17,6 +17,8 @@
 
 .rich-text p { margin-bottom: 16px; color: #292929; }
 
+.rich-text span {background-color: transparent !important; color: inherit !important; }
+
 .rich-text h1 { font-size: 36px; font-weight: 700; color: #252525 !important; margin: 32px 0; }
 
 .rich-text h2 { font-size: 22px; font-weight: 700; color: #252525 !important; margin: 24px 0; }

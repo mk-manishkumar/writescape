@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 const ListBlog = () => {
   const [blogs, setBlogs] = useState([]);
@@ -32,7 +33,15 @@ const ListBlog = () => {
     }
 
     try {
-      const response = await axios.delete(`/api/v1/blog/${blogId}`);
+      const response = await axios.post(
+        "/api/v1/blog/delete",
+        { id: blogId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         toast.success("Blog deleted successfully");
@@ -82,26 +91,26 @@ const ListBlog = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800 mb-1">{blog.title}</h3>
                       <p className="text-sm text-gray-600">
-                        By {blog.authorId?.fullname || "Unknown Author"} • {blog.category}
+                        By {blog.authorId?.fullname || "Unknown Author"} • <span className="text-primary">{blog.category}</span>
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-gray-600 mb-3 line-clamp-2">{blog.description}</p>
+                  <p className="text-gray-600 mb-3 line-clamp-2" dangerouslySetInnerHTML={{ __html: blog.description }}></p>
 
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Published: {new Date(blog.date).toLocaleDateString()}</span>
+                    <span>Published: {new Date(blog.createdAt).toLocaleDateString()}</span>
                     <span>Updated: {new Date(blog.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2 ml-4">
-                  <button onClick={() => window.open(`/blog/${blog._id}`, "_blank")} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm transition-colors">
+                  <Link to={`/blog/${blog._id}`} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm transition-colors inline-block text-center">
                     View
-                  </button>
-                  <button onClick={() => window.open(`/edit-blog/${blog._id}`, "_blank")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors">
+                  </Link>
+                  <Link to={`/admin/editblog/${blog._id}`} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors inline-block text-center">
                     Edit
-                  </button>
+                  </Link>
                   <button onClick={() => deleteBlog(blog._id)} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm transition-colors">
                     Delete
                   </button>
