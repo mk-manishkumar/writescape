@@ -1,4 +1,5 @@
 import React from "react";
+import axios from "axios";
 import { assets } from "../../assets/assets";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
@@ -6,24 +7,22 @@ import toast from "react-hot-toast";
 const BlogTableItem = ({ blog, fetchBlogs, index }) => {
   const { title, createdAt } = blog;
   const BlogDate = new Date(createdAt);
-
-  const { token } = useAppContext(); 
+  const { token } = useAppContext();
 
   const deleteBlog = async () => {
     const confirm = window.confirm("Are you sure you want to delete this blog?");
     if (!confirm) return;
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/v1/blog/delete`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: blog._id }),
-      });
-
-      const data = await response.json();
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/v1/blog/delete`,
+        { id: blog._id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (data.success) {
         toast.success(data.message);
@@ -32,22 +31,21 @@ const BlogTableItem = ({ blog, fetchBlogs, index }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message || "Failed to delete blog");
+      toast.error(error.response?.data?.message || "Failed to delete blog");
     }
   };
 
   const togglePublish = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/blog/toggle-publish`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: blog._id }),
-      });
-
-      const data = await response.json();
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/v1/blog/toggle-publish`,
+        { id: blog._id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (data.success) {
         toast.success(data.message);
@@ -56,7 +54,7 @@ const BlogTableItem = ({ blog, fetchBlogs, index }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message || "Failed to toggle publish status");
+      toast.error(error.response?.data?.message || "Failed to toggle publish status");
     }
   };
 

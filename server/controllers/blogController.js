@@ -17,7 +17,7 @@ export const addBlog = async (req, res) => {
     if (req.file) {
       try {
         const uploadResult = await imagekit.upload({
-          file: req.file.buffer, 
+          file: req.file.buffer,
           fileName: `blog_${Date.now()}_${req.file.originalname}`,
           folder: "/blogs",
         });
@@ -33,9 +33,9 @@ export const addBlog = async (req, res) => {
       subTitle,
       description,
       category,
-      image: imageUrl, 
-      isPublished: isPublished === "true", 
-      author: req.admin.id,
+      image: imageUrl,
+      isPublished: isPublished === "true",
+      authorId: req.admin.id, 
     });
 
     res.status(201).json({ success: true, blog: newBlog });
@@ -47,7 +47,7 @@ export const addBlog = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ isPublished: true }).populate("author", "fullname email"); 
+    const blogs = await Blog.find({ isPublished: true }).populate("authorId", "fullname email");
     res.status(200).json({ success: true, blogs });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -56,7 +56,7 @@ export const getAllBlogs = async (req, res) => {
 
 export const getBlogById = async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id).populate("author", "fullname email"); 
+    const blog = await Blog.findById(req.params.id).populate("authorId", "fullname email");
     if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
     res.status(200).json({ success: true, blog });
   } catch (err) {
@@ -66,8 +66,56 @@ export const getBlogById = async (req, res) => {
 
 export const getUserBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ author: req.admin.id }); 
+    const blogs = await Blog.find({ authorId: req.admin.id }).populate("authorId", "fullname email");
     res.status(200).json({ success: true, blogs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const updateBlog = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, subTitle, description, category, isPublished } = req.body;
+
+    const blog = await Blog.findById(id);
+    if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
+
+    if (blog.authorId.toString() !== req.admin.id) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    let imageUrl = blog.image;
+
+    // Upload new image if provided
+    if (req.file) {
+      try {
+        const uploadResult = await imagekit.upload({
+          file: req.file.buffer,
+          fileName: `blog_${Date.now()}_${req.file.originalname}`,
+          folder: "/blogs",
+        });
+        imageUrl = uploadResult.url;
+      } catch (uploadError) {
+        console.log("Image upload error:", uploadError);
+        return res.status(500).json({ success: false, message: "Image upload failed" });
+      }
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      id,
+      {
+        title,
+        subTitle,
+        description,
+        category,
+        image: imageUrl,
+        isPublished: isPublished === "true",
+      },
+      { new: true }
+    );
+
+    res.status(200).json({ success: true, blog: updatedBlog });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -80,7 +128,7 @@ export const deleteBlog = async (req, res) => {
     const blog = await Blog.findById(id);
     if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
 
-    if (blog.author.toString() !== req.admin.id) {
+    if (blog.authorId.toString() !== req.admin.id) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
@@ -100,7 +148,7 @@ export const togglePublishBlog = async (req, res) => {
     const blog = await Blog.findById(id);
     if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
 
-    if (blog.author.toString() !== req.admin.id) {
+    if (blog.authorId.toString() !== req.admin.id) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
@@ -142,7 +190,7 @@ export const addComment = async (req, res) => {
 
 export const getCommentsByBlogId = async (req, res) => {
   try {
-    const comments = await Comment.find({ blog: req.params.blogId, isApproved: true }); 
+    const comments = await Comment.find({ blog: req.params.blogId, isApproved: true });
     res.status(200).json({ success: true, comments });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

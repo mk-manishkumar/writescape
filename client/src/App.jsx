@@ -6,7 +6,9 @@ import Layout from "./pages/admin/Layout";
 import Dashboard from "./pages/admin/Dashboard";
 import AddBlog from "./pages/admin/AddBlog";
 import ListBlog from "./pages/admin/ListBlog";
+import EditBlog from "./pages/admin/EditBlog";
 import Comments from "./pages/admin/Comments";
+import AdminProfile from "./pages/admin/AdminProfile";
 import Login from "./components/admin/Login";
 import Register from "./components/admin/Register";
 import "quill/dist/quill.snow.css";
@@ -39,6 +41,8 @@ const App = () => {
           <Route path="addblog" element={<AddBlog />} />
           <Route path="listblog" element={<ListBlog />} />
           <Route path="comments" element={<Comments />} />
+          <Route path="profile" element={<AdminProfile />} />
+          <Route path="editblog/:id" element={<EditBlog />} />
         </Route>
       </Routes>
     </div>

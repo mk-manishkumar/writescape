@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import Blog from "../models/Blog.model.js";
 import Admin from "../models/Admin.model.js";
 import Comment from "../models/Comment.model.js";
+import imagekit from "../configs/imagekit.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const COOKIE_OPTIONS = {
@@ -11,6 +12,7 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
+// ================== AUTH CONTROLLERS =====================
 export const registerAdmin = async (req, res) => {
   try {
     const { email, fullname, password } = req.body;
@@ -85,9 +87,10 @@ export const logoutAdmin = (req, res) => {
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
+// ============= BLOG CONTROLLERS =========================
 export const getAllBlogsByAdmin = async (req, res) => {
   try {
-    const blogs = await Blog.find({}).sort({ createdAt: -1 });
+    const blogs = await Blog.find({}).populate("authorId", "fullname email").sort({ createdAt: -1 });
     res.status(200).json({ success: true, blogs });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -115,7 +118,7 @@ export const getDashboardData = async (req, res) => {
       totalBlogs,
       totalComments,
       drafts,
-      blogs: totalBlogs, 
+      blogs: totalBlogs,
     };
 
     res.status(200).json({ success: true, dashboardData });
@@ -143,3 +146,117 @@ export const approveCommentById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ================== CONTROLLER TO GET PROFILE ============================
+export const getAdminProfile = async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.admin.id).select("-password");
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+    res.json({
+      success: true,
+      admin: {
+        id: admin._id,
+        email: admin.email,
+        fullname: admin.fullname,
+        profilePicture: admin.profilePicture,
+        createdAt: admin.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+// ================== UPDATE ADMIN PROFILE ============================
+export const updateAdminProfile = async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+    const { fullname, email } = req.body;
+
+    if (!fullname || !email) {
+      return res.status(400).json({ success: false, message: "Full name and email are required" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, message: "Please provide a valid email address" });
+    }
+
+    const existingAdmin = await Admin.findOne({
+      email: email.toLowerCase(),
+      _id: { $ne: adminId },
+    });
+
+    if (existingAdmin) {
+      return res.status(400).json({ success: false, message: "Email is already registered with another account" });
+    }
+
+    const updateData = {
+      fullname: fullname.trim(),
+      email: email.toLowerCase().trim(),
+    };
+
+    if (req.file) {
+      try {
+        const uploadResult = await imagekit.upload({
+          file: req.file.buffer,
+          fileName: `profile_${adminId}_${Date.now()}`,
+          folder: "/admin_profiles", 
+        });
+        // Save the secure URL from ImageKit
+        updateData.profilePicture = uploadResult.url;
+      } catch (uploadError) {
+        console.error("ImageKit upload error:", uploadError);
+        return res.status(500).json({ success: false, message: "Profile picture upload failed." });
+      }
+    }
+
+    const updatedAdmin = await Admin.findByIdAndUpdate(adminId, updateData, { new: true }).select("-password");
+
+    if (!updatedAdmin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      admin: {
+        id: updatedAdmin._id,
+        email: updatedAdmin.email,
+        fullname: updatedAdmin.fullname,
+        profilePicture: updatedAdmin.profilePicture,
+        createdAt: updatedAdmin.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ================== ADMIN STATS ============================
+export const getAdminProfileStats = async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+
+    const totalBlogs = await Blog.countDocuments({ authorId: adminId });
+
+    const adminBlogs = await Blog.find({ authorId: adminId }).select("_id");
+    const blogIds = adminBlogs.map((blog) => blog._id);
+    const totalComments = await Comment.countDocuments({ blog: { $in: blogIds } });
+
+    const admin = await Admin.findById(adminId).select("createdAt");
+
+    res.status(200).json({
+      success: true,
+      totalBlogs,
+      totalComments,
+      memberSince: admin?.createdAt,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

@@ -18,7 +18,7 @@ const Blog = () => {
 
   const fetchBlogData = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/blog/${id}`);
+      const response = await fetch(`${backendUrl}/api/v1/blog/${id}`);
       const result = await response.json();
 
       if (result.success) {
@@ -34,7 +34,7 @@ const Blog = () => {
 
   const fetchComments = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/blog/comments/${id}`);
+      const response = await fetch(`${backendUrl}/api/v1/blog/comments/${id}`);
       const result = await response.json();
 
       if (result.success) {
@@ -57,7 +57,7 @@ const Blog = () => {
     }
 
     try {
-      const response = await fetch(`${backendUrl}/api/blog/add-comment`, {
+      const response = await fetch(`${backendUrl}/api/v1/blog/add-comment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +65,7 @@ const Blog = () => {
         body: JSON.stringify({
           blogId: id,
           name: name.trim(),
-          content: content.trim(),
+          text: content.trim(),
         }),
       });
 
@@ -92,21 +92,21 @@ const Blog = () => {
 
   return data ? (
     <div className="relative">
-      <img src={assets.gradientBackground} alt="" className="absolute -top-50 -z-1 opacity-50" />
+      <img src={assets.gradientBackground} alt="" className="absolute -top-52 z-[-1] opacity-50" />
 
       <Navbar />
 
       <div className="text-center mt-20 text-gray-600">
-        <p className="text-primary py-4 font-medium">Published on {Moment(data.date).format("MMMM Do YYYY")}</p>
+        <p className="text-primary py-4 font-medium">Published on {Moment(data.createdAt).format("MMMM Do YYYY")}</p>
         <h2 className="text-2xl sm:text-5xl font-semibold max-w-2xl mx-auto text-gray-800">{data.title}</h2>
-        <h3 className="my-5 max-w-lg truncate mx-auto">{data.description}</h3>
+        <h3 className="my-5 max-w-lg truncate mx-auto">{data.subTitle || data.description}</h3>
         <p className="inline-block py-1 px-4 rounded-full mb-6 border text-sm border-primary/35 bg-primary/5 font-medium text-primary">{data.authorId?.fullname || "Unknown Author"}</p>
       </div>
 
       <div className="mx-5 max-w-5xl md:mx-auto my-10 mt-6">
         <img src={data.image} alt="thumbnail" className="rounded-3xl mb-5" />
 
-        <div dangerouslySetInnerHTML={{ __html: data.content }} className="rich-text max-w-3xl mx-auto"></div>
+        <div dangerouslySetInnerHTML={{ __html: data.description }} className="rich-text max-w-3xl mx-auto"></div>
 
         {/* COMMENT SECTION */}
         <div className="mt-14 mb-10 max-w-3xl mx-auto">
@@ -118,7 +118,7 @@ const Blog = () => {
                   <img src={assets.user_icon} alt="user icon" className="w-6" />
                   <p className="font-medium">{comment.name}</p>
                 </div>
-                <p className="text-sm max-w-md ml-8">{comment.content}</p>
+                <p className="text-sm max-w-md ml-8">{comment.text}</p>
                 <div className="absolute right-4 bottom-3 flex items-center gap-2 text-xs">{Moment(comment.createdAt).fromNow()}</div>
               </div>
             ))}
@@ -137,16 +137,6 @@ const Blog = () => {
               Submit
             </button>
           </form>
-        </div>
-
-        {/* SHARE BUTTONS */}
-        <div className="my-24 max-w-3xl mx-auto">
-          <p className="font-semibold my-4">Share the blog</p>
-          <div className="flex">
-            <img src={assets.facebook_icon} width={50} alt="" />
-            <img src={assets.twitter_icon} width={50} alt="" />
-            <img src={assets.googleplus_icon} width={50} alt="" />
-          </div>
         </div>
       </div>
 

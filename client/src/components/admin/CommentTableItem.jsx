@@ -1,25 +1,24 @@
-import React from "react";
 import { assets } from "../../assets/assets";
 import { useAppContext } from "../../context/AppContext";
+import axios from "axios";
 import toast from "react-hot-toast";
 
 const CommentTableItem = ({ comment, fetchComments }) => {
   const { blog, createdAt, _id } = comment;
   const BlogDate = new Date(createdAt);
-  const { token } = useAppContext(); 
+  const { token } = useAppContext();
 
   const approveComment = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/v1/admin/approve-comment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: _id }),
-      });
-
-      const data = await response.json();
+      const { data } = await axios.post(
+        "/api/v1/admin/approve-comment",
+        { id: _id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (data.success) {
         toast.success(data.message);
@@ -28,25 +27,24 @@ const CommentTableItem = ({ comment, fetchComments }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message || "Failed to approve comment");
+      toast.error(error?.response?.data?.message || "Failed to approve comment");
     }
   };
 
   const deleteComment = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this comment?");
+    if (!confirmDelete) return;
+
     try {
-      const confirm = window.confirm("Are you sure you want to delete this comment?");
-      if (!confirm) return;
-
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/api/admin/delete-comment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: _id }),
-      });
-
-      const data = await response.json();
+      const { data } = await axios.post(
+        "/api/v1/admin/delete-comment",
+        { id: _id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (data.success) {
         toast.success(data.message);
@@ -55,7 +53,7 @@ const CommentTableItem = ({ comment, fetchComments }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message || "Failed to delete comment");
+      toast.error(error?.response?.data?.message || "Failed to delete comment");
     }
   };
 

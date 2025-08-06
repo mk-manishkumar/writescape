@@ -21,7 +21,7 @@ export const AppProvider = ({ children }) => {
 
   const fetchBlogs = useCallback(async () => {
     try {
-      const res = await axios.get("/api/v1/blog"); // Correct: keeping v1
+      const res = await axios.get("/api/v1/blog"); 
       if (res.data.success) {
         setBlogs(res.data.blogs);
       } else {
