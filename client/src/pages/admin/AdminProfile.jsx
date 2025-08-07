@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
-import AdminProfileDetails from "./AdminProfileDetails";
-import AdminProfileStats from "./AdminProfileStats";
-import AdminProfileSettings from "./AdminProfileSettings";
+import AdminProfileDetails from "../../components/admin/AdminProfileDetails";
+import AdminProfileStats from "../../components/admin/AdminProfileStats";
+import AdminProfileSettings from "../../components/admin/AdminProfileSettings";
 
 const AdminProfile = () => {
   const { axios, admin, setAdmin, token, logout } = useAppContext();
@@ -207,7 +207,7 @@ const AdminProfile = () => {
       <AdminProfileDetails admin={admin} profileData={profileData} isEditing={isEditing} isLoading={isLoading} handleInputChange={handleInputChange} handleImageChange={handleImageChange} handleSave={handleSave} handleCancel={handleCancel} setIsEditing={setIsEditing} getInitials={getInitials} />
 
       <AdminProfileStats statsData={statsData} />
-      
+
       <AdminProfileSettings openAccordion={openAccordion} toggleAccordion={toggleAccordion} oldPassword={oldPassword} setOldPassword={setOldPassword} newPassword={newPassword} setNewPassword={setNewPassword} handleChangePassword={handleChangePassword} isLoading={isLoading} delPassword={delPassword} setDelPassword={setDelPassword} handleDeleteAccount={handleDeleteAccount} />
     </div>
   );

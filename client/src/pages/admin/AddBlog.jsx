@@ -40,13 +40,29 @@ const AddBlog = () => {
     }
   };
 
+  const isEmptyHtml = (html) => {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    // Check if div.textContent is empty or just whitespace
+    return !div.textContent || div.textContent.trim() === "";
+  };
+
+
   // Function to submit a blog
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     setIsAdding(true);
 
-    if (!title || !subTitle || !category || !image) {
+    if (!title || !category ) {
       toast.error("Please fill in all required fields");
+      setIsAdding(false);
+      return;
+    }
+
+    const descriptionHtml = quillRef.current.root.innerHTML;
+
+    if (isEmptyHtml(descriptionHtml)) {
+      toast.error("Blog content cannot be empty");
       setIsAdding(false);
       return;
     }
@@ -55,7 +71,7 @@ const AddBlog = () => {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("subTitle", subTitle); 
-      formData.append("description", quillRef.current.root.innerHTML); 
+      formData.append("description", descriptionHtml); 
       formData.append("category", category);
       formData.append("isPublished", isPublished);
       formData.append("image", image);
@@ -97,14 +113,14 @@ const AddBlog = () => {
         <label htmlFor="image">
           <span className="sr-only">Upload Thumbnail</span>
           <img src={!image ? assets.upload_area : URL.createObjectURL(image)} alt="" className="mt-2 h-16 rounded cursor-pointer" />
-          <input type="file" onChange={(e) => setImage(e.target.files[0])} id="image" accept="image/*" hidden required />
+          <input type="file" onChange={(e) => setImage(e.target.files[0])} id="image" accept="image/*" hidden  />
         </label>
 
         <p className="mt-4">Blog Title</p>
         <input type="text" placeholder="Type here" onChange={(e) => setTitle(e.target.value)} value={title} className="w-full max-w-lg mt-2 p-2 border border-gray-300 outline-none rounded" required />
 
         <p className="mt-4">SubTitle</p>
-        <input type="text" placeholder="Enter Subtitle" onChange={(e) => setSubTitle(e.target.value)} value={subTitle} className="w-full max-w-lg mt-2 p-2 border border-gray-300 outline-none rounded" required />
+        <input type="text" placeholder="Enter Subtitle" onChange={(e) => setSubTitle(e.target.value)} value={subTitle} className="w-full max-w-lg mt-2 p-2 border border-gray-300 outline-none rounded" />
 
         <p className="mt-4">Blog Content</p>
         <div className="max-w-lg h-74 pb-16 sm:pb-10 pt-2 relative">

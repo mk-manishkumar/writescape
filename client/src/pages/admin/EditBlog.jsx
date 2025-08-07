@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAppContext } from "../../context/AppContext";
+import { blogCategories } from "../../assets/assets";
 
 const EditBlog = () => {
   const { id } = useParams();
@@ -21,7 +22,6 @@ const EditBlog = () => {
 
   const fetchBlog = useCallback(async () => {
     try {
-      // Fixed: Use correct API endpoint with /api/v1
       const response = await axios.get(`/api/v1/blog/${id}`);
       if (response.data.success) {
         const blog = response.data.blog;
@@ -36,13 +36,12 @@ const EditBlog = () => {
       } else {
         toast.error("Failed to fetch blog data");
       }
-    } catch (error) {
-      console.error("Error fetching blog:", error);
+    } catch {
       toast.error("Failed to fetch blog data");
     } finally {
       setLoading(false);
     }
-  }, [axios, id]); // Added dependencies
+  }, [axios, id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,12 +73,11 @@ const EditBlog = () => {
 
       if (response.data.success) {
         toast.success("Blog updated successfully");
-        navigate("/admin/listblog"); // Fixed: Use correct route path
+        navigate("/admin/listblog");
       } else {
         toast.error(response.data.message || "Failed to update blog");
       }
-    } catch (error) {
-      console.error("Error updating blog:", error);
+    } catch {
       toast.error("Failed to update blog");
     }
   };
@@ -88,7 +86,7 @@ const EditBlog = () => {
     if (token) {
       fetchBlog();
     }
-  }, [token, fetchBlog]); // Fixed dependencies
+  }, [token, fetchBlog]);
 
   if (loading) {
     return (
@@ -106,7 +104,6 @@ const EditBlog = () => {
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              {/* Fixed: Add htmlFor attribute to associate label with input */}
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                 Title *
               </label>
@@ -114,23 +111,21 @@ const EditBlog = () => {
             </div>
 
             <div>
-              {/* Fixed: Add htmlFor attribute */}
               <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                 Category *
               </label>
-              <select id="category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <select onChange={(e) => setFormData({ ...formData, category: e.target.value })} name="category" value={formData.category} className="px-3 py-2 border border-gray-300 outline-none rounded w-full" required>
                 <option value="">Select Category</option>
-                <option value="Technology">Technology</option>
-                <option value="Health">Health</option>
-                <option value="Business">Business</option>
-                <option value="Travel">Travel</option>
-                <option value="Lifestyle">Lifestyle</option>
+                {blogCategories.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
           <div className="mb-6">
-            {/* Fixed: Add htmlFor attribute */}
             <label htmlFor="subtitle" className="block text-sm font-medium text-gray-700 mb-2">
               Subtitle
             </label>
@@ -138,7 +133,6 @@ const EditBlog = () => {
           </div>
 
           <div className="mb-6">
-            {/* Fixed: Add htmlFor attribute */}
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
               Description *
             </label>
@@ -146,7 +140,6 @@ const EditBlog = () => {
           </div>
 
           <div className="mb-6">
-            {/* Fixed: Add htmlFor attribute */}
             <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
               Blog Image
             </label>
@@ -167,10 +160,10 @@ const EditBlog = () => {
           </div>
 
           <div className="flex gap-4">
-            <button type="submit" className="bg-primary hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
+            <button type="submit" className="bg-primary hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer">
               Update Blog
             </button>
-            <button type="button" onClick={() => navigate("/admin/listblog")} className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors">
+            <button type="button" onClick={() => navigate("/admin/listblog")} className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors cursor-pointer">
               Cancel
             </button>
           </div>
