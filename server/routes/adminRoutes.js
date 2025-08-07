@@ -1,5 +1,5 @@
 import express from "express";
-import { registerAdmin, loginAdmin, approveCommentById, deleteCommentById, getAllBlogsByAdmin, getAllComments, getDashboardData, logoutAdmin, updateAdminProfile, getAdminProfileStats, getAdminProfile } from "../controllers/adminController.js";
+import { registerAdmin, loginAdmin, approveCommentById, deleteCommentById, getAllBlogsByAdmin, getAllComments, getDashboardData, logoutAdmin, updateAdminProfile, getAdminProfileStats, getAdminProfile, changePassword, deleteAccount } from "../controllers/adminController.js";
 import auth from "../middleware/auth.js";
 import upload from "../middleware/multer.js";
 
@@ -18,8 +18,8 @@ adminRouter.post("/approve-comment", auth, approveCommentById);
 adminRouter.get("/dashboard", auth, getDashboardData);
 adminRouter.get("/profile", auth, getAdminProfile);
 adminRouter.get("/profile-stats", auth, getAdminProfileStats);
-
-// update Profile route
 adminRouter.put("/profile", auth, upload.single("profilePicture"), updateAdminProfile);
+adminRouter.put("/change-password", auth, changePassword);
+adminRouter.delete("/delete-account", auth, deleteAccount);
 
 export default adminRouter;

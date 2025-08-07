@@ -260,3 +260,80 @@ export const getAdminProfileStats = async (req, res) => {
   }
 };
 
+// =================== Change Password Controller ================
+export const changePassword = async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Old and new passwords are required" });
+    }
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    const isMatch = await admin.comparePassword(oldPassword);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Old password is incorrect" });
+    }
+
+    admin.password = newPassword; 
+    await admin.save();
+
+    res.status(200).json({ success: true, message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ========================= Delete Account Controller =======================
+export const deleteAccount = async (req, res) => {
+  try {
+    const adminId = req.admin.id;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ success: false, message: "Password is required" });
+    }
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    const isMatch = await admin.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: "Password is incorrect" });
+    }
+
+    // Delete all blogs authored by this admin
+    const blogs = await Blog.find({ authorId: adminId });
+    const blogIds = blogs.map((b) => b._id);
+
+    // Delete related comments for these blogs
+    await Comment.deleteMany({ blog: { $in: blogIds } });
+
+    // Delete blogs authored by admin
+    await Blog.deleteMany({ authorId: adminId });
+
+    // Comments authored by admin on other blogs if those exist.
+    await Comment.deleteMany({ authorId: adminId });
+
+    // Delete admin account
+    await Admin.findByIdAndDelete(adminId);
+
+    // Clear token cookie (logout)
+    res.clearCookie("token", {
+      httpOnly: true,
+      sameSite: "Strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
