@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
     blogs: 0,
-    comments: 0,
+    totalComments: 0,
     drafts: 0,
     recentBlogs: [],
   });
@@ -43,7 +43,7 @@ const Dashboard = () => {
         <div className="flex items-center gap-4 bg-white p-4 rounded min-w-58 shadow cursor-pointer hover:scale-105 transition-all">
           <img src={assets.dashboard_icon_2} alt="" />
           <div>
-            <p className="text-xl font-semibold text-gray-600">{dashboardData.comments}</p>
+            <p className="text-xl font-semibold text-gray-600">{dashboardData.totalComments}</p>
             <p className="text-gray-400 font-light">Comments</p>
           </div>
         </div>
@@ -93,7 +93,7 @@ const Dashboard = () => {
                   blog={blog}
                   fetchBlogs={() => {
                     axios
-                      .get("/api/v1/admin/dashboard") 
+                      .get("/api/v1/admin/dashboard")
                       .then(({ data }) => {
                         if (data.success) setDashboardData(data.dashboardData);
                         else toast.error(data.message);
