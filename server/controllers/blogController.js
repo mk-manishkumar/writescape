@@ -35,7 +35,7 @@ export const addBlog = async (req, res) => {
       category,
       image: imageUrl,
       isPublished: isPublished === "true",
-      authorId: req.admin.id, 
+      authorId: req.admin.id,
     });
 
     res.status(201).json({ success: true, blog: newBlog });
@@ -196,3 +196,41 @@ export const getCommentsByBlogId = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+
+// ========================= Like a blog controller =====================
+export const likeBlog = async (req, res) => {
+  try {
+    const adminId = req.admin.id; 
+    const { blogId } = req.body;
+
+    if (!blogId) {
+      return res.status(400).json({ success: false, message: "Blog ID is required" });
+    }
+
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      return res.status(404).json({ success: false, message: "Blog not found" });
+    }
+
+    if (blog.authorId.toString() === adminId) {
+      return res.status(400).json({ success: false, message: "Cannot like your own blog" });
+    }
+
+    if (blog.likedBy.includes(adminId)) {
+      return res.status(400).json({ success: false, message: "You have already liked this blog" });
+    }
+
+    blog.likedBy.push(adminId);
+    await blog.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Blog liked",
+      likesCount: blog.likedBy.length, 
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
