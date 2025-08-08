@@ -9,9 +9,19 @@ const blogSchema = new mongoose.Schema(
     image: { type: String },
     isPublished: { type: Boolean, required: true },
     authorId: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
+    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "Admin" }],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
+
+// Virtual property to get like count from likedBy array length
+blogSchema.virtual("likesCount").get(function () {
+  return this.likedBy ? this.likedBy.length : 0;
+});
 
 const Blog = mongoose.model("Blog", blogSchema);
 export default Blog;

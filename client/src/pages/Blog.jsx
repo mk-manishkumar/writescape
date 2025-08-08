@@ -6,6 +6,8 @@ import Footer from "../components/Footer";
 import Moment from "moment";
 import Loader from "../components/Loader";
 import toast from "react-hot-toast";
+import { useAppContext } from "../context/AppContext";
+import LikeButton from "../components/admin/LikeButton";
 
 const Blog = () => {
   const { id } = useParams();
@@ -15,6 +17,11 @@ const Blog = () => {
   const [comments, setComments] = useState([]);
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
+
+  const { axios, token, admin } = useAppContext();
+
+  const isAuthenticated = Boolean(token);
+  const currentAdminId = admin?._id;
 
   const fetchBlogData = useCallback(async () => {
     try {
@@ -75,7 +82,6 @@ const Blog = () => {
         toast.success("Comment added successfully! It will appear after approval.");
         setName("");
         setContent("");
-        // Don't fetch comments immediately as they need approval
       } else {
         toast.error(result.message);
       }
@@ -90,12 +96,18 @@ const Blog = () => {
     fetchComments();
   }, [fetchBlogData, fetchComments]);
 
-  return data ? (
+  if (!data) return <Loader />;
+
+  // Correctly check if current admin id exists in likedBy array by string comparison
+  const initiallyLiked = isAuthenticated && Array.isArray(data.likedBy) && data.likedBy.some((likedAdminId) => likedAdminId.toString() === currentAdminId);
+
+  return (
     <div className="relative">
       <img src={assets.gradientBackground} alt="" className="absolute -top-52 z-[-1] opacity-50" />
 
       <Navbar />
 
+      {/* Blog header & metadata */}
       <div className="text-center mt-20 text-gray-600">
         <p className="text-primary py-4 font-medium">Published on {Moment(data.createdAt).format("MMMM Do YYYY")}</p>
         <h2 className="text-2xl sm:text-5xl font-semibold max-w-2xl mx-auto text-gray-800">{data.title}</h2>
@@ -103,10 +115,16 @@ const Blog = () => {
         <p className="inline-block py-1 px-4 rounded-full mb-6 border text-sm border-primary/35 bg-primary/5 font-medium text-primary">{data.authorId?.fullname || "Unknown Author"}</p>
       </div>
 
+      {/* Blog content area */}
       <div className="mx-5 max-w-5xl md:mx-auto my-10 mt-6">
-        {data.image && <img src={data.image} alt="thumbnail" className="rounded-3xl mb-5 w-96 h-96 mx-auto" />}
+        {data.image && <img src={data.image} alt="thumbnail" className="rounded-3xl mb-5 w-96 h-96 mx-auto object-cover" />}
 
         <div dangerouslySetInnerHTML={{ __html: data.description }} className="rich-text max-w-3xl mx-auto"></div>
+
+        {/* LIKE BUTTON */}
+        <div className="max-w-3xl mx-auto my-8 flex justify-start">
+          <LikeButton initialLikes={data.likedBy ? data.likedBy.length : 0} initiallyLiked={initiallyLiked} blogId={id} isAuthenticated={isAuthenticated} axios={axios} />
+        </div>
 
         {/* COMMENT SECTION */}
         <div className="mt-14 mb-10 max-w-3xl mx-auto">
@@ -125,7 +143,7 @@ const Blog = () => {
           </div>
         </div>
 
-        {/* ADD COMMENT SECTION */}
+        {/* ADD COMMENT FORM */}
         <div className="max-w-3xl mx-auto">
           <p className="font-semibold mb-4">Add your comment</p>
           <form onSubmit={addComment} className="flex flex-col items-start gap-4 max-w-lg">
@@ -142,8 +160,6 @@ const Blog = () => {
 
       <Footer />
     </div>
-  ) : (
-    <Loader />
   );
 };
 
