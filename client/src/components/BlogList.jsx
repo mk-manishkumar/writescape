@@ -30,12 +30,15 @@ const BlogList = () => {
 
   return (
     <div>
-      <div className="flex justify-center gap-4 sm:gap-8 my-10 relative">
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-6 my-6 px-4 overflow-x-auto scrollbar-hide">
         {blogCategories.map((item) => (
           <div key={item} className="relative">
-            <button onClick={() => setMenu(item)} className={`cursor-pointer text-gray-500 ${menu === item ? "text-white px-4 pt-0.5" : ""}`}>
+            <button
+              onClick={() => setMenu(item)}
+              className={`cursor-pointer text-gray-500 whitespace-nowrap px-3 py-1 rounded-full transition-colors duration-200
+          ${menu === item ? "bg-primary text-white" : "hover:bg-gray-100"}`}
+            >
               {item}
-              {menu === item && <motion.div layoutId="underline" transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute left-0 right-0 top-0 h-7 -z-1 bg-primary rounded-full"></motion.div>}
             </button>
           </div>
         ))}
