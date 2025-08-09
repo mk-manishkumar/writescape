@@ -23,7 +23,9 @@ export const addBlog = async (req, res) => {
         });
         imageUrl = uploadResult.url;
       } catch (uploadError) {
-        console.log("Image upload error:", uploadError);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Image upload error:", uploadError);
+        }
         return res.status(500).json({ success: false, message: "Image upload failed" });
       }
     }
@@ -40,7 +42,6 @@ export const addBlog = async (req, res) => {
 
     res.status(201).json({ success: true, blog: newBlog });
   } catch (err) {
-    console.log(err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -97,7 +98,9 @@ export const updateBlog = async (req, res) => {
         });
         imageUrl = uploadResult.url;
       } catch (uploadError) {
-        console.log("Image upload error:", uploadError);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Image upload error:", uploadError);
+        }
         return res.status(500).json({ success: false, message: "Image upload failed" });
       }
     }
@@ -197,11 +200,10 @@ export const getCommentsByBlogId = async (req, res) => {
   }
 };
 
-
 // ========================= Like a blog controller =====================
 export const likeBlog = async (req, res) => {
   try {
-    const adminId = req.admin.id; 
+    const adminId = req.admin.id;
     const { blogId } = req.body;
 
     if (!blogId) {
@@ -227,10 +229,9 @@ export const likeBlog = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Blog liked",
-      likesCount: blog.likedBy.length, 
+      likesCount: blog.likedBy.length,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
